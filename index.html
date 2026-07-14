@@ -542,7 +542,8 @@
             if (shortage > 0) {
                 let onePercentOfSubtotal = totals.subtotal * 0.01;
                 if (shortage > 5 && shortage > onePercentOfSubtotal) {
-                    let confirmDiscount = confirm(`Warning: Extra discount (৳${shortage.toFixed(2)}) is higher than 1% of total.\n\nApprove?`);
+                  //let confirmDiscount = confirm(`Warning: Extra discount (৳${shortage.toFixed(2)}) is higher than 1% of total.\n\nApprove?`);
+                    let confirmDiscount = confirm(`Extra discount (৳${shortage.toFixed(2)}) is higher ⚠️\nthan 1% of total (৳${onePercentOfSubtotal.toFixed(2)}) \n\nApprove?  🛒`);
                     if (!confirmDiscount) {
                         document.getElementById('manual-discount').value = oldManualDiscount;
                         calculateTotals();
