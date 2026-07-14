@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SACAR Mart - Advanced POS System for retail shop management. Easy billing, dynamic receipt printing, and sales tracking.">
+    <meta name="keywords" content="SACAR Mart, sacar mart, Sacar Mart, SACARMART, sacarmart, SacarMart, SACAR Mart POS, sacar mart pos, Sacar Mart POS System, SACAR Mart POS System, সাকার মার্ট, সাকারমার্ট, সাকার মার্ট পিওএস, সাকারমার্ট পিওএস, সাকার মার্ট পিওএস সিস্টেম, চাকারমার্ট, চাকার মার্ট, চাকারমার্ট পিওএস, চাকার মার্ট পিওএস, চাকারমার্ট পিও সিস্টেম, চাকার মার্ট পিও সিস্টেম, chakar mart, chakarmart, Chakar Mart, ChakarMart, chakar mart pos, CHAKAR MART, CHAKARMART">
+    <meta name="author" content="SACAR Mart">
+    <meta name="robots" content="index, follow">
+    
+    <title>SACAR Mart - POS System</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/3514/3514491.png">
+    <link rel="stylesheet" href="ruler-tracker.css">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background: #fff !important; color: #000 !important; display: block !important; width: 100% !important; height: auto !important; margin: 0 !important; padding: 0 !important; }
+        
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box {
+            background: #fff; padding: 40px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; width: 350px;
+        }
+        .login-box h2 { margin-bottom: 20px; color: #2c3e50; }
+        .login-btn {
+            width: 100%; padding: 12px; background: #3498db; color: white;
+            border: none; border-radius: 6px; font-size: 16px; font-weight: bold;
+            cursor: pointer; margin-top: 15px; transition: 0.2s;
+        }
+        .login-btn:hover { background: #2980b9; }
+        .error-msg { color: #e74c3c; font-size: 14px; margin-top: 10px; display: none; }
+    
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            margin-bottom: -20px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+        .social-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 42px;
+            height: 42px;
+            background-color: #f1f3f5;
+            color: #2c3e50;
+            border-radius: 50%;
+            font-size: 18px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .social-icon:hover {
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .social-icon.email:hover { background-color: #ea4335; }
+        .social-icon.facebook:hover { background-color: #1877f2; }
+        .social-icon.website:hover { background-color: #2ecc71; }
+
+        #app-content { display: none; width: 100%; min-width: 27.5cm; max-width: 65cm; min-height: 26cm; height: 100%;}
+        
+        .pos-container { flex: 2; padding: 25px; display: flex; flex-direction: column; background: #fff; border-right: 2px solid #e0e0e0; }
+        h2 { margin-bottom: 20px; color: #2c3e50; font-size: 24px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        
+        .input-group { display: flex; gap: 15px; margin-bottom: 20px; position: relative; }
+        .input-field { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; outline: none; }
+        .input-field:focus { border-color: #3498db; box-shadow: 0 0 5px rgba(52,152,219,0.3); }
+        
+        .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; z-index: 1000; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; }
+        .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+        .suggestion-item:hover { background-color: #ecf0f1; color: #3498db; }
+
+        .table-wrapper { flex: 1; overflow-y: auto; margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #f8f9fa; padding: 12px; font-weight: 600; color: #7f8c8d; border-bottom: 1px solid #e0e0e0; }
+        td { padding: 12px; border-bottom: 1px solid #eeffff; }
+        tr:hover { background-color: #fdfefe; }
+        
+        .qty-input { width: 60px; padding: 6px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-delete:hover { background: #c0392b; }
+
+        .summary-container { flex: 1.2; padding: 25px; background: #fdfefe; display: flex; flex-direction: column; justify-content: space-between; }
+        .summary-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; }
+        .summary-row.total { font-weight: bold; font-size: 20px; color: #2c3e50; border-top: 1px dashed #ccc; padding-top: 12px; }
+        
+        .action-btn { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { background: #27ae60; }
+        
+        #print-receipt { display: none; width: 80mm; background: #fff; padding: 10px; color: #000; }
+        .receipt-header { text-align: center; margin-bottom: 15px; }
+        .receipt-header h1 { font-size: 22px; margin-bottom: 5px; }
+        .receipt-header .p-address { font-size: 10px; color: #333; line-height: 1.4; }
+        .receipt-table { width: 100%; margin-top: 10px; font-size: 12px; border-collapse: collapse; }
+        .receipt-table th, .receipt-table td { padding: 5px 0; }
+        .receipt-divider { border-top: 1px dashed #000; margin: 10px 0; }
+    
+        #cust-mobile::placeholder { font-size: 11px; }
+        #manual-discount::placeholder { font-size: 11px; }
+        #cash-paid::placeholder { font-size: 14px; color: #c99; }
+
+        #whatsapp-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+            align-items: center; z-index: 10000; display: none;
+        }
+        .whatsapp-modal-box {
+            background: #fff; padding: 30px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center;
+            width: 380px; max-width: 90%; animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .whatsapp-modal-box i { font-size: 50px; color: #25D366; margin-bottom: 15px; }
+        .whatsapp-modal-box h3 { color: #2c3e50; margin-bottom: 10px; font-size: 20px; }
+        .whatsapp-modal-box p { color: #555; font-size: 15px; margin-bottom: 20px; line-height: 1.4; }
+        .whatsapp-modal-btn {
+            padding: 12px 25px; background: #25D366; color: white; border: none;
+            border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .whatsapp-modal-btn:hover { background: #20ba56; }
+        .whatsapp-timer-bar {
+            height: 4px; background: #25D366; width: 100%; margin-top: 20px;
+            border-radius: 2px; transform-origin: left;
+        }
+
+        /* Sync status panel & notifications styling */
+        #sync-status-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .sync-toast {
+            background: #ffffff; color: #333; padding: 12px 20px; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); font-size: 14px; font-weight: 600;
+            display: flex; align-items: center; gap: 10px; pointer-events: auto;
+            animation: toastSlideIn 0.3s ease forwards; border-left: 4px solid #3498db;
+        }
+        @keyframes toastSlideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .sync-toast.success { border-left-color: #2ecc71; }
+        .sync-toast.failed { border-left-color: #e74c3c; background: #fff5f5; }
+        .sync-toast button {
+            background: none; border: none; font-size: 12px; font-weight: bold;
+            cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: 0.2s;
+        }
+        .sync-toast.failed .retry-btn { background: #e74c3c; color: white; margin-left: 5px; }
+        .sync-toast.failed .retry-btn:hover { background: #c0392b; }
+        .sync-toast.failed .cancel-btn { background: #7f8c8d; color: white; margin-left: 5px; }
+        .sync-toast.failed .cancel-btn:hover { background: #616a6b; }
+    
+        @media print {
+            body { background: #fff; color: #000; display: flex !important; justify-content: center !important; align-items: flex-start !important; width: 100% !important; height: auto !important; }
+            #login-overlay, .pos-container, .summary-container, #app-content, #whatsapp-modal-overlay, #sync-status-container { display: none !important; }
+            #print-receipt { display: block !important; width: 75mm !important; margin: 0 auto !important; padding: 0 !important; font-family: 'Courier New', Courier, monospace; position: relative !important; left: 0; right: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sync-status-container"></div>
+
+    <div id="whatsapp-modal-overlay" onclick="closeWhatsAppModal()">
+        <div class="whatsapp-modal-box" onclick="event.stopPropagation()">
+            <i class="fab fa-whatsapp"></i>
+            <h3>Send Memo to WhatsApp?</h3>
+            <p>Do you want to send the digital memo to the customer's WhatsApp number?</p>
+            <button class="whatsapp-modal-btn" id="whatsapp-send-btn">
+                <i class="fas fa-paper-plane"></i> Send Now (<span id="whatsapp-countdown">6</span>s)
+            </button>
+            <div id="whatsapp-timer-bar" class="whatsapp-timer-bar"></div>
+        </div>
+    </div>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>SACAR Mart POS</h2>
+            <p style="font-size: 14px; color: #7f8c8d; margin-bottom: 15px;">Enter Password to Access</p>
+            <input type="password" id="pass-input" class="input-field" style="text-align: center;" placeholder="••••••••">
+            <div id="error-message" class="error-msg">Incorrect Password! Try Again.<br>or<br> Contact with <a href="https://wa.me/qr/QQ3YB5O2UMREE1" target="_blank" style="color: inherit; font-weight: bold; text-decoration: underline; font-style: italic;">Saiful Islam</a></div>
+            <button class="login-btn" onclick="checkPassword()">Login</button>
+            
+            <div class="social-links">
+                <a href="mailto:saiful.987.yu@gmail.com" class="social-icon email" title="Send Email">
+                    <i class="fas fa-envelope"></i>
+                </a>
+                <a href="https://www.facebook.com/share/1EWWy9FwmA/" target="_blank" class="social-icon facebook" title="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://youtube.com/@0pristharbani?si=Cy7Ib1JCKezxtUt6" target="_blank" class="social-icon website" title="Visit Website">
+                    <i class="fas fa-globe"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-content">
+        <div style="display: flex; width: 100%; height: 100%; justify-content: center;">
+            <div class="pos-container" style="max-width: 25cm;">
+                
+                <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>SACAR Mart - New Order</span>
+                    <div id="live-clock" style="font-size: 13px; color: #555; font-weight: 600;"></div>
+                    <a href="#" style="font-size: 13px; color: #fff; background: #1478bb; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                        <i class="fas fa-download"></i> Slip Download
+                    </a>
+                </h2>
+                
+                <div class="input-group">
+                    <div class="search-container" style="flex: 2; min-width: 7cm">
+                        <input type="text" id="search-input" class="input-field" style="width: 100%;" placeholder="Scan Barcode or Type Name / SKU..." autocomplete="off">
+                        <div id="suggestions" class="suggestions-box"></div>
+                    </div>
+                    <div style="flex: 1; min-width: 3.3cm; max-width: 4.8cm">
+                        <input type="text" id="cust-name" class="input-field" style="width: 100%" placeholder="Customer Name (Walk-In)">
+                    </div>
+                    <div style="flex: 1; min-width: 2.6cm; max-width: 4.2cm">
+                        <input type="tel" id="cust-mobile" class="input-field" style="width: 100%" placeholder="Mobile (Optional)" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div style="flex: 1; min-width: 2.3cm; max-width: 3.3cm;">
+                        <input type="text" id="emp-name" class="input-field" style="width: 100%; border-color: #3498db;" placeholder="Employee Name">
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Qty</th>
+                                <th style="width: 25%">SKU</th>
+                                <th style="width: 45%">Product Name</th>
+                                <th style="width: 15%">Rate</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="summary-container" style="max-width: 12cm;">
+                <div>
+                    <h2 style="text-align: center;">Order Summary</h2>
+                    <div class="summary-box">
+                        <div class="summary-row"><span>Sub-Total:</span><span>৳ <span id="lbl-subtotal">0.00</span></span></div>
+                        <div class="summary-row"><span>Discount:</span><span>৳ <span id="lbl-discount">0.00</span></span></div>
+                        <div class="summary-row"><span>Govt. VAT:</span><span>৳ <span id="lbl-vat">0.00</span></span></div>
+                        <div class="summary-row"><span>Items / Qty:</span><span><span id="total-combined" style="font-weight: bold;">0 / 0</span></span></div>
+
+                        <div class="summary-row total"><span>Grand Total:</span><span>৳ <span id="lbl-grandtotal">0.00</span></span></div>
+                    </div>
+                    
+                    <div class="input-group" style="justify-content: center; min-width: 6cm; margin-bottom: 10px;">
+                        <input type="number" id="cash-paid" class="input-field" style="width: 90%;" placeholder="Cash Received (Paid Amount)">
+                    </div>
+
+                    <div class="input-group" style="justify-content: center; min-width: 6cm; margin-bottom: 10px;">
+                        <input type="number" id="manual-discount" class="input-field" placeholder="+/- Extra Discount (৳)" oninput="calculateTotals()" style="width: 50%; padding: 10px; font-size: 14px;">
+                        <button type="button" onclick="makeRoundDiscount()" style="width: 25%; background: #f39c12; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#d35400'" onmouseout="this.style.background='#f39c12'">
+                            <i class="fas fa-wand-magic-sparkles"></i> Fix
+                        </button>
+                    </div>
+
+                    <div class="summary-box" style="margin-top: 10px;">
+                        <div class="summary-row" style="font-weight: 600;"><span>Change Details:</span><span>৳ <span id="lbl-change">0.00</span></span></div>
+                    </div>
+                    <button class="action-btn" onclick="processOrder()">Complete Order & Print</button>
+                    <button type="button" style="width: 70%; padding: 8px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 1.5cm; margin-left: 15%; transition: 0.2s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'" onclick="cancelOrder()">Cancel Order</button>
+                    
+                    <div style="display: flex; gap: 8px; margin-top: .5cm; width: 100%;">
+                        <a href="https://www.google.com/search?q=calculator" target="_blank" style="flex: 1; text-align: center; padding: 6px; background: #34495e; color: white; border-radius: 4px; font-size: 13px; font-weight: 600; text-decoration: none; transition: 0.2s;" onmouseover="this.style.background='#2c3e50'" onmouseout="this.style.background='#34495e'">
+                            <i class="fas fa-calculator"></i> <br>Calculator
+                        </a>
+                        <a href="#" target="_blank" style="flex: 1; text-align: center; padding: 6px; background: #2ecc71; color: white; border-radius: 4px; font-size: 13px; font-weight: 600; text-decoration: none; transition: 0.2s;" onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">
+                            <i class="fas fa-boxes-stacked"></i> <br>Product
+                        </a>
+                        <a href="https://youtu.be/-xYBigiGEhg?si=NIhlyCX8yzHmluEv" target="_blank" style="flex: 1; text-align: center; padding: 6px; background: #9b59b6; color: white; border-radius: 4px; font-size: 13px; font-weight: 600; text-decoration: none; transition: 0.2s;" onmouseover="this.style.background='#8e44ad'" onmouseout="this.style.background='#9b59b6'">
+                            <i class="fas fa-circle-info"></i> <br>Details
+                        </a>
+                    </div>
+                </div>    
+            </div>
+
+        </div>
+    </div>
+    
+    <div id="print-receipt">
+        <div class="receipt-header">
+            <h1>SACAR Mart</h1>
+            <div class="p-address">
+                <p>Hazi-Edrish mia Bazar, Subarnachar, Noakhali.</p>
+                <p>Call: 01610-622995</p>
+            </div>
+            <h3 style="margin-top: 10px; border: 1px solid #000; padding: 2px;">CASH RECEIPT</h3>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; line-height: 1.4;">
+            <div>
+                <div><strong>Order #:</strong> <span id="p-order-id"></span></div>
+                <div><strong>Date:</strong> <span id="p-date"></span></div>
+                <div><strong>Customer:</strong> <span id="p-customer"></span></div>
+            </div>
+            <div id="p-qr-code" style="width: 65px; height: 65px; border: none; display: flex; justify-content: center; align-items: center;"></div>
+        </div>
+        
+        <div class="receipt-divider" style="margin: 6px 0 -8px 0 !important;"></div>
+        <table class="receipt-table" id="p-items-table">
+        </table>
+        <div class="receipt-divider"></div>
+        
+        <div style="display: flex; justify-content: flex-end;">
+            <table style="font-size: 13px; line-height: 1.4; border-collapse: collapse; width: auto; font-family: inherit;">
+                <tr>
+                    <td align="right" style="padding: 1px 0;">Sub-Total</td>
+                    <td align="center" style="width: 15px; padding: 1px 0;">:</td>
+                    <td align="right" style="padding: 1px 0; white-space: nowrap;">৳<span id="p-subtotal"></span></td>
+                </tr>
+                <tr>
+                    <td align="right" style="padding: 1px 0;">Discount</td>
+                    <td align="center" style="width: 15px; padding: 1px 0;">:</td>
+                    <td align="right" style="padding: 1px 0; white-space: nowrap;">৳<span id="p-discount"></span></td>
+                </tr>
+                <tr>
+                    <td align="right" style="padding: 1px 0;">Govt. VAT</td>
+                    <td align="center" style="width: 15px; padding: 1px 0;">:</td>
+                    <td align="right" style="padding: 1px 0; white-space: nowrap;">৳<span id="p-vat"></span></td>
+                </tr>
+                <tr style="font-weight: bold; font-size: 14px;">
+                    <td align="right" style="padding: 2px 0;">Grand Total</td>
+                    <td align="center" style="width: 15px; padding: 2px 0;">:</td>
+                    <td align="right" style="padding: 2px 0; white-space: nowrap;">৳<span id="p-grandtotal"></span></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding: 4px 0;">
+                        <div style="border-top: 1px dashed #000; width: 100%;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" style="padding: 1px 0;">Paid Cash</td>
+                    <td align="center" style="width: 15px; padding: 1px 0;">:</td>
+                    <td align="right" style="padding: 1px 0; white-space: nowrap;">৳<span id="p-paid"></span></td>
+                </tr>
+                <tr>
+                    <td align="right" style="padding: 1px 0;">Change</td>
+                    <td align="center" style="width: 15px; padding: 1px 0;">:</td>
+                    <td align="right" style="padding: 1px 0; white-space: nowrap;">৳<span id="p-change"></span></td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="receipt-divider"></div>
+        <div style="text-align: center; font-size: 12px; margin-top: 10px;">
+            Thank you for shopping with us!
+        </div>
+    </div>
+    <script>
+        const CORRECT_PASSWORD = "admin";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzmkOlPi5jmPVKXW0ThC7a2muiwNOWKQpZUG94quK5d6i1V0nC22H_-i7KBJG9p_8z9ZQ/exec";
+        let productDatabase = [];
+        let cart = [];
+        let modalTimeout = null;
+        let modalInterval = null;
+
+        function checkPassword() {
+            const userInput = document.getElementById('pass-input').value;
+            const errorMsg = document.getElementById('error-message');
+            
+            if (userInput === CORRECT_PASSWORD) {
+                sessionStorage.setItem("pos_authenticated", "true");
+                unlockScreen();
+                fetchProducts();
+                initBackgroundSync();
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('pass-input').value = '';
+            }
+        }
+
+        document.getElementById('pass-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        function unlockScreen() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        }
+
+        window.onload = function() {
+            if (sessionStorage.getItem("pos_authenticated") === "true") {
+                unlockScreen();
+                fetchProducts();
+                initBackgroundSync();
+            }
+        };
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(WEB_APP_URL);
+                productDatabase = await response.json();
+            } catch (error) {
+                console.log("Error loading product database.");
+            }
+        }
+
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('suggestions');
+    
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            suggestionsBox.innerHTML = '';
+            if (!query) { suggestionsBox.style.display = 'none'; return; }
+            
+            const barcodeMatch = productDatabase.find(p => p.barcode && p.barcode.toString() === query);
+            if (barcodeMatch) {
+                addToCart(barcodeMatch);
+                searchInput.value = '';
+                suggestionsBox.style.display = 'none';
+                searchInput.focus();
+                return;
+            }
+            
+            let filtered = productDatabase.filter(p => 
+                p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query)
+            );
+            
+            filtered.sort((a, b) => {
+                const nameA = a.name.toLowerCase();
+                const nameB = b.name.toLowerCase();
+                const aStartsWith = nameA.startsWith(query);
+                const bStartsWith = nameB.startsWith(query);
+                if (aStartsWith && !bStartsWith) return -1;
+                if (!aStartsWith && bStartsWith) return 1;
+                return nameA.localeCompare(nameB);
+            });
+            
+            if (filtered.length > 0) {
+                filtered.forEach(prod => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerText = `${prod.name} (${prod.sku}) - ৳${parseFloat(prod.price).toFixed(2)}`;
+                    div.onclick = () => {
+                        addToCart(prod);
+                        searchInput.value = '';
+                        suggestionsBox.style.display = 'none';
+                    };
+                    suggestionsBox.appendChild(div);
+                });
+                suggestionsBox.style.display = 'block';
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        function addToCart(product) {
+            const existing = cart.find(item => item.sku === product.sku);
+            const productVat = product.vat ? parseFloat(product.vat) : 0;
+            const productDiscount = product.discount ? parseFloat(product.discount) : 0;
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1, price: parseFloat(product.price),
+                    vatPercent: productVat, discountPercent: productDiscount
+                });
+            }
+            renderCart();
+        }
+
+        function updateQty(sku, newQty) {
+            const item = cart.find(i => i.sku === sku);
+            if (item) {
+                let qty = parseInt(newQty);
+                if (isNaN(qty) || qty < 1) qty = 1; 
+                item.qty = qty;
+                renderCart();
+            }
+        }
+    
+        function deleteItem(sku) {
+            if (confirm("Are you sure you want to remove this item from the cart?")) {
+                cart = cart.filter(item => item.sku !== sku);
+                renderCart();
+            }
+        }
+
+        function calculateTotals() {
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            let totalDiscount = cart.reduce((sum, item) => {
+                let itemTotal = item.price * item.qty;
+                return sum + (itemTotal * (item.discountPercent / 100));
+            }, 0);
+            
+            let extraDiscountInput = parseFloat(document.getElementById('manual-discount').value) || 0;
+            totalDiscount += extraDiscountInput;
+
+            let totalVat = cart.reduce((sum, item) => {
+                let itemTotal = item.price * item.qty;
+                let itemNetTotal = itemTotal - (itemTotal * (item.discountPercent / 100));
+                return sum + (itemNetTotal * (item.vatPercent / 100));
+            }, 0);
+            
+            let grandTotal = subtotal - totalDiscount + totalVat;
+            if (grandTotal < 0) grandTotal = 0;
+
+            let cashPaid = parseFloat(document.getElementById('cash-paid').value.replace(/[^0-9.]/g, '')) || 0;
+            let change = cashPaid - grandTotal; 
+
+            document.getElementById('lbl-subtotal').innerText = subtotal.toFixed(2);
+            document.getElementById('lbl-discount').innerText = totalDiscount.toFixed(2);
+            document.getElementById('lbl-vat').innerText = totalVat.toFixed(2);
+            document.getElementById('lbl-grandtotal').innerText = grandTotal.toFixed(2);
+            document.getElementById('lbl-change').innerText = change.toFixed(2);
+            document.getElementById('total-combined').innerText = cart.length + " / " + totalQty;
+
+            return { subtotal, discount: totalDiscount, vat: totalVat, grandTotal, cashPaid, change };
+        }
+
+        function makeRoundDiscount() {
+            let cashPaid = parseFloat(document.getElementById('cash-paid').value) || 0;
+            if (cashPaid <= 0) { alert("Please enter the Cash Received amount first!"); return; }
+            let oldManualDiscount = document.getElementById('manual-discount').value;
+            document.getElementById('manual-discount').value = 0; 
+            let totals = calculateTotals();
+            let shortage = totals.grandTotal - cashPaid;
+            
+            if (shortage > 0) {
+                let onePercentOfSubtotal = totals.subtotal * 0.01;
+                if (shortage > 5 && shortage > onePercentOfSubtotal) {
+                    let confirmDiscount = confirm(`Warning: Extra discount (৳${shortage.toFixed(2)}) is higher than 1% of total.\n\nApprove?`);
+                    if (!confirmDiscount) {
+                        document.getElementById('manual-discount').value = oldManualDiscount;
+                        calculateTotals();
+                        return;
+                    }
+                }
+                document.getElementById('manual-discount').value = shortage.toFixed(2);
+                calculateTotals();
+            } else {
+                alert("No shortage found!");
+                document.getElementById('manual-discount').value = oldManualDiscount;
+                calculateTotals();
+            }
+        }
+
+        document.getElementById('cash-paid').addEventListener('change', function() {
+            if (parseFloat(this.value) < 0) this.value = Math.abs(parseFloat(this.value));
+            else if (this.value.trim() === "") this.value = 0;
+            calculateTotals();
+        });
+        document.getElementById('cash-paid').addEventListener('input', calculateTotals);
+
+        function renderCart() {
+            const tbody = document.getElementById('cart-table-body');
+            tbody.innerHTML = '';
+            cart.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="number" class="qty-input" value="${item.qty}" min="1" onchange="updateQty('${item.sku}', this.value)"></td>
+                    <td>${item.sku}</td>
+                    <td>${item.name}</td>
+                    <td>৳${item.price.toFixed(2)}</td>
+                    <td><button class="btn-delete" onclick="deleteItem('${item.sku}')">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            calculateTotals();
+        }
+
+        function processOrder() {
+            if (cart.length === 0) { alert("Cart is empty!"); return; }
+            const cashPaidInput = document.getElementById('cash-paid').value.trim();
+            if (cashPaidInput === "") { alert("Please enter the Paid Amount!"); document.getElementById('cash-paid').focus(); return; }
+            if (!confirm("Are you sure you want to process this order and print the receipt?")) return;
+
+            const totals = calculateTotals();
+            const customerName = document.getElementById('cust-name').value.trim() || "Walk-In";
+            const customerMobile = document.getElementById('cust-mobile').value.trim();
+            const employeeName = document.getElementById('emp-name').value.trim() || "Admin";
+            
+            const now = new Date();
+            const orderId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dateTimeStr = `${String(now.getDate()).padStart(2, '0')}-${months[now.getMonth()]}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            let status = "Unpaid";
+            if (totals.cashPaid >= totals.grandTotal) status = "Paid";
+            else if (totals.cashPaid > 0) status = "Partially Paid";
+
+            const payload = {
+                orderId: orderId,
+                dateTime: dateTimeStr,
+                customerName: customerName,
+                totalItems: cart.reduce((sum, i) => sum + i.qty, 0),
+                grandTotal: totals.grandTotal.toFixed(2),
+                status: status,
+                partiallyPaid: status === "Partially Paid" ? totals.cashPaid.toFixed(2) : "",
+                vat: totals.vat.toFixed(2),
+                discount: totals.discount.toFixed(2),
+                employeeName: employeeName,
+                details: cart.map(i => `${i.sku} (x${i.qty})`).join(", ")
+            };
+
+            // 💾 1. ল্যাপটপের মেমোরিতে (LocalStorage) রকেট গতিতে সেভ
+            const savedOrders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
+            savedOrders.push(payload);
+            localStorage.setItem('pending_orders', JSON.stringify(savedOrders));
+
+            // 🖨️ 2. রেন্ডার এবং ইনস্ট্যান্ট প্রিন্ট ট্রিগার
+            document.getElementById('p-order-id').innerText = orderId;
+            document.getElementById('p-date').innerText = dateTimeStr;
+            document.getElementById('p-customer').innerText = customerName;
+            
+            const qrContainer = document.getElementById('p-qr-code');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, { text: orderId, width: 51, height: 51 });
+            
+            const pTable = document.getElementById('p-items-table');
+            pTable.innerHTML = `<tr><th align="left">Item</th><th align="center">Qty</th><th align="right">Rate</th></tr>`;
+            cart.forEach(i => {
+                pTable.innerHTML += `<tr><td>${i.name}</td><td align="center">×${i.qty}</td><td align="right">৳${i.price.toFixed(2)}</td></tr>`; 
+            });
+            
+            document.getElementById('p-subtotal').innerText = totals.subtotal.toFixed(2);
+            document.getElementById('p-discount').innerText = totals.discount.toFixed(2);
+            document.getElementById('p-vat').innerText = totals.vat.toFixed(2);
+            document.getElementById('p-grandtotal').innerText = totals.grandTotal.toFixed(2);
+            document.getElementById('p-paid').innerText = totals.cashPaid.toFixed(2);
+            document.getElementById('p-change').innerText = totals.change > 0 ? totals.change.toFixed(2) : "0.00";
+            
+            window.print();
+
+            // 📱 3. হোয়াটসঅ্যাপ ডেটা রেডি করা
+            let whatsappUrl = "";
+            if (customerMobile !== "") {
+                let formattedMobile = customerMobile.startsWith("0") && !customerMobile.startsWith("88") ? "88" + customerMobile : customerMobile;
+                
+                // 📝 মূল মেসেজ টেক্সট (এখানে স্লিপ দেখার বাংলা লাইন এবং ফিক্সড লিংক যুক্ত করা হয়েছে)
+                let msg = `*🛒 SACAR Mart - Cash Receipt *\n----------------------------------\n*Order ID:* ${orderId}\n*Date:* ${dateTimeStr}\n*Customer:* ${customerName}\n----------------------------------\n`;
+                
+                // ✂️ [আইটেম লিস্ট কমেন্ট আউট করা হলো] তুমি চাইলে পরবর্তীতে শুরুর // কেটে দিলে আবার আইটেম লিস্ট চালু হয়ে যাবে
+                // cart.forEach(item => { msg += `• ${item.name} (${item.qty} x ৳${item.price.toFixed(2)})\n`; });
+                
+                msg += `----------------------------------\n*Sub-Total:* ৳${totals.subtotal.toFixed(2)}\n*Discount:* ৳${totals.discount.toFixed(2)}\n*Grand Total:* ৳${totals.grandTotal.toFixed(2)}\n*Paid Amount:* ৳${totals.cashPaid.toFixed(2)}\n*Change:* ৳${(totals.change > 0 ? totals.change.toFixed(2) : "0.00")}\n\n📂 আপনার মেমোটি দেখতে নিচের লিংকে ক্লিক করুন:\n👉 https://drive.google.com/drive/folders/YOUR_FIXED_FOLDER_LINK_HERE \n\n*Thank you for shopping!* 🙏\n_Software Developed by SACAR IT Solutions_`;
+                
+                whatsappUrl = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                    ? `https://wa.me/${formattedMobile}?text=${encodeURIComponent(msg)}`
+                    : `https://web.whatsapp.com/send?phone=${formattedMobile}&text=${encodeURIComponent(msg)}`;
+            }
+
+            // 🔄 4. ব্যাকগ্রাউন্ডে ক্লাউড সিঙ্ক শুরু করা
+            triggerSync(orderId, whatsappUrl);
+
+            // 🧹 5. সাথে সাথে ইন্টারফেস ক্লিয়ার
+            clearCartAndInputs();
+        }
+    
+    
+        function triggerSync(orderId, whatsappUrl) {
+            const container = document.getElementById('sync-status-container');
+            
+            // 🔄 স্ক্রিনে ৩টি বক্স থাকলে সবচেয়ে পুরনোটি মুছে ফেলবে
+            if (container.children.length >= 3) {
+                container.removeChild(container.firstElementChild);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'sync-toast';
+            toast.id = `toast-${orderId}`;
+            // 🆔 এখানেও অর্ডার আইডি দেখাবে
+            toast.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Saving Order [${orderId}]...</span>`;
+            container.appendChild(toast);
+
+            sendOrderToSheets(orderId, whatsappUrl);
+        }
+
+        
+        function sendOrderToSheets(orderId, whatsappUrl) {
+            const savedOrders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
+            const orderData = savedOrders.find(o => o.orderId === orderId);
+            const toast = document.getElementById(`toast-${orderId}`);
+
+            if (!orderData) { if (toast) toast.remove(); return; }
+
+            fetch(WEB_APP_URL, {
+                method: "POST", mode: "no-cors", cache: "no-cache",
+                headers: { "Content-Type": "text/plain" }, body: JSON.stringify(orderData)
+            })
+            .then(() => {
+                const currentOrders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
+                localStorage.setItem('pending_orders', JSON.stringify(currentOrders.filter(o => o.orderId !== orderId)));
+
+                if (toast) {
+                    toast.className = 'sync-toast success';
+                    toast.innerHTML = `<i class="fas fa-check-circle" style="color:#2ecc71;"></i> <span>Order [${orderId}] Saved Successfully! 🎉</span>`;
+                    setTimeout(() => toast.remove(), 5000);
+                }
+
+                if (whatsappUrl) showWhatsAppModal(whatsappUrl);
+            })
+            .catch(() => {
+                if (toast) {
+                    toast.className = 'sync-toast failed';
+                    let timeLeft = 40; 
+
+                    // 🛑 [টাইমার মারামারি বন্ধের ট্রিক] গ্লোবাল বা উইন্ডো লেভেলে আগের কোনো রানিং টাইমার থাকলে তা বন্ধ করে দেবে
+                    if (window.activeCountdown) {
+                        clearInterval(window.activeCountdown);
+                    }
+
+                    const updateToastHTML = () => {
+                        if (!document.getElementById(`toast-${orderId}`)) {
+                            clearInterval(window.activeCountdown);
+                            return;
+                        }
+                        toast.innerHTML = `
+                            <i class="fas fa-exclamation-circle" style="color:#e74c3c;"></i> 
+                            <span>Order [${orderId}] Save Failed! (${timeLeft}s)</span>
+                            <button class="retry-btn" onclick="sendOrderToSheets('${orderId}', '${whatsappUrl}')" title="Retry"><i class="fas fa-sync-alt"></i></button>
+                            <button class="cancel-btn" onclick="cancelToast('${orderId}')" title="Cancel"><i class="fas fa-times"></i></button>
+                        `;
+                    };
+
+                    updateToastHTML();
+
+                    // ⏱️ নতুন টাইমার আইডি গ্লোবাল ভেরিয়েবলে সেভ করে রাখা হচ্ছে
+                    window.activeCountdown = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft <= 0) {
+                            clearInterval(window.activeCountdown);
+                            cancelToast(orderId); 
+                        } else {
+                            updateToastHTML(); 
+                        }
+                    }, 1000);
+                }
+            });
+
+        }
+
+
+
+        function cancelToast(orderId) {
+            const toast = document.getElementById(`toast-${orderId}`);
+            if (toast) toast.remove();
+        }
+
+        function initBackgroundSync() {
+            setInterval(() => {
+                const savedOrders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
+                if (savedOrders.length > 0 && navigator.onLine) {
+                    savedOrders.forEach(order => {
+                        const existingToast = document.getElementById(`toast-${order.orderId}`);
+                        if (!existingToast) triggerSync(order.orderId, "");
+                    });
+                }
+            }, 10000); // প্রতি 10 সেকেন্ড পর অটো-সিঙ্ক চেক হবে
+        }
+
+        function showWhatsAppModal(url) {
+            const overlay = document.getElementById('whatsapp-modal-overlay');
+            const countdownSpan = document.getElementById('whatsapp-countdown');
+            const timerBar = document.getElementById('whatsapp-timer-bar');
+            const sendBtn = document.getElementById('whatsapp-send-btn');
+            
+            let timeLeft = 6; 
+            countdownSpan.innerText = timeLeft;
+            timerBar.style.transition = 'none';
+            timerBar.style.transform = 'scaleX(1)';
+            overlay.style.display = 'flex';
+            
+            setTimeout(() => {
+                timerBar.style.transition = 'transform 6s linear';
+                timerBar.style.transform = 'scaleX(0)';
+            }, 50);
+
+            sendBtn.onclick = function() { window.open(url, '_blank'); closeWhatsAppModal(); };
+
+            modalInterval = setInterval(() => {
+                timeLeft--;
+                countdownSpan.innerText = timeLeft;
+                if (timeLeft <= 0) clearInterval(modalInterval);
+            }, 1000);
+
+            modalTimeout = setTimeout(() => { closeWhatsAppModal(); }, 6000);
+        }
+
+        function closeWhatsAppModal() {
+            document.getElementById('whatsapp-modal-overlay').style.display = 'none';
+            if (modalTimeout) clearTimeout(modalTimeout);
+            if (modalInterval) clearInterval(modalInterval);
+        }
+
+        function clearCartAndInputs() {
+            cart = [];
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-mobile').value = '';
+            document.getElementById('cash-paid').value = '';
+            document.getElementById('manual-discount').value = '';
+            calculateTotals();
+            renderCart();
+        }
+        
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    
+        function cancelOrder() {
+            if (confirm("Are you sure you want to cancel the entire order?")) {
+                clearCartAndInputs();
+                document.getElementById('search-input').value = '';
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+		
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u')) || (e.ctrlKey && (e.key === 'S' || e.key === 's'))) {
+                e.preventDefault();
+                alert("Security Alert: Source code access is restricted!");
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
